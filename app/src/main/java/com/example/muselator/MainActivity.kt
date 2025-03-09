@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +23,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.muselator.ui.theme.MuselatorTheme
 import com.example.muselator.ui.theme.onSecondaryContainerLight
 import com.example.muselator.ui.theme.secondaryContainerLight
@@ -40,12 +45,19 @@ class MainActivity : ComponentActivity() {
 @Preview(showBackground = true)
 @Composable
 fun MuselatorApp(){
-    LandingScreen()
+
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "LandingScreen"){
+        composable("landingscreen"){ LandingScreen(navController) }
+        composable("homescreen"){ HomeScreen(navController) }
+        composable("muselator") { MuselatorScreen(navController) }
+        composable("flashcards") { FlashcardsScreen(navController) }
+        composable("profile") { ProfileScreen(navController) }
+    }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun LandingScreen(){
+fun LandingScreen(navController: NavController){
     Column (
         modifier = Modifier
             .fillMaxSize()
@@ -64,7 +76,7 @@ fun LandingScreen(){
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            onClick = {/* nothing */ },
+            onClick = { navController.navigate("homescreen") },
             colors = ButtonDefaults.buttonColors(
                 containerColor = secondaryContainerLight
             )
@@ -78,3 +90,4 @@ fun LandingScreen(){
 
     }
 }
+
