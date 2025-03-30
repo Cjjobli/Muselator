@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Create
@@ -14,15 +16,24 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,6 +42,11 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.muselator.ui.theme.surfaceLight
+import com.google.mlkit.common.model.DownloadConditions
+import com.google.mlkit.nl.languageid.LanguageIdentification
+import com.google.mlkit.nl.translate.TranslateLanguage
+import com.google.mlkit.nl.translate.Translation
+import com.google.mlkit.nl.translate.TranslatorOptions
 
 /*
 DOCSTRINGS
@@ -38,6 +54,12 @@ IN LINE COMMENTS
  */
 @Composable
 fun HomeScreen(navController: NavController) {
+
+    var inputText by remember { mutableStateOf("") }
+    var translatedText by remember { mutableStateOf("") }
+    var detectedLanguage by remember { mutableStateOf("") }
+    var isDetecting by remember { mutableStateOf(false) }
+
     Scaffold(
         bottomBar = { BottomNavBar(navController) }
     ) { paddingValues ->
@@ -62,11 +84,101 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(50.dp))
 
-            InputTextField("Text to translate:")
+            OutlinedTextField(
+                value = inputText,
+                onValueChange = { inputText = it },
+                label = { Text("Text to translate", color = Color.White) },
+                textStyle = TextStyle(fontSize = 30.sp, color = Color.White),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 30.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.White,
+                    focusedBorderColor = Color.White
+                )
+            )
 
-            CustomMintButton("Translate")
+            Button(
+                onClick = {
+                    isDetecting = true
 
-            OutputTextField("Translated Text:", null)
+                    // Detect language using ML Kit's Language Identification
+                    val languageIdentifier = LanguageIdentification.getClient()
+
+                    languageIdentifier.identifyLanguage(inputText)
+                        .addOnSuccessListener { languageCode ->
+
+                            if (languageCode != "und") {
+                                detectedLanguage = "Detected language: $languageCode"
+
+                                // Translate only if language is detected
+                                val options = TranslatorOptions.Builder()
+                                    .setSourceLanguage(languageCode)
+                                    .setTargetLanguage(TranslateLanguage.ENGLISH)
+                                    .build()
+
+                                val englishTranslator = Translation.getClient(options)
+
+                                val conditions = DownloadConditions.Builder()
+                                    .requireWifi()
+                                    .build()
+
+                                englishTranslator.downloadModelIfNeeded(conditions)
+                                    .addOnSuccessListener {
+                                        englishTranslator.translate(inputText)
+                                            .addOnSuccessListener {  translatedText = it }
+                                            .addOnFailureListener { translatedText = "Translation failed." }
+                                    }
+                                    .addOnFailureListener {
+                                        translatedText = "Model download failed."
+                                    }
+
+                                // Language is undetected
+                            } else {
+                                detectedLanguage = "Language not detected."
+                            }
+                        }
+                        .addOnFailureListener {
+                            detectedLanguage = "Language detection failed."
+                        }
+                        .addOnCompleteListener {
+                            isDetecting = false
+                        }
+                },
+                enabled = inputText.isNotEmpty() && !isDetecting,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(125f, 0.32f, 0.64f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Detect and Translate")
+            }
+
+            Text(text = detectedLanguage, style = TextStyle(fontSize = 20.sp, color = Color.White), modifier = Modifier.padding(top = 12.dp))
+
+            OutlinedTextField(
+                value = translatedText,
+                onValueChange = {},
+                label = { Text("Translation", color = Color.White) },
+                textStyle = TextStyle(fontSize = 30.sp, color = Color.White),
+                shape = RoundedCornerShape(16.dp),
+                readOnly = true,
+                modifier = Modifier.fillMaxWidth().padding(top = 30.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color.White,
+                    focusedBorderColor = Color.White
+                    )
+                )
+
+            // Clear Button
+            Button(
+                onClick = {
+                    inputText = ""
+                    translatedText = ""
+                    detectedLanguage = ""
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(0f, 0.7f, 0.7f)),
+                modifier = Modifier.fillMaxWidth().padding(top = 30.dp)
+            ) {
+                Text("Clear")
+            }
         }
     }
 }

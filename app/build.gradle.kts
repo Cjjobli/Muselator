@@ -61,5 +61,9 @@ dependencies {
     implementation ("androidx.compose.ui:ui-text-google-fonts:1.2.0")
     implementation ("com.google.android.gms:play-services-base:18.3.0")
 
+    // ML Kit Translation API
+    implementation ("com.google.mlkit:translate:17.0.3")
 
+    // ML Kit Language Identification API
+    implementation ("com.google.mlkit:language-id:17.0.6")
 }
