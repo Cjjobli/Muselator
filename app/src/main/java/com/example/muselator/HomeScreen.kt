@@ -1,45 +1,31 @@
 package com.example.muselator
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Create
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.muselator.ui.theme.surfaceLight
 import com.google.mlkit.common.model.DownloadConditions
@@ -48,10 +34,6 @@ import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
 
-/*
-DOCSTRINGS
-IN LINE COMMENTS
- */
 @Composable
 fun HomeScreen(navController: NavController) {
 
@@ -164,8 +146,8 @@ fun HomeScreen(navController: NavController) {
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.White,
                     focusedBorderColor = Color.White
-                    )
                 )
+            )
 
             // Clear Button
             Button(
@@ -183,41 +165,33 @@ fun HomeScreen(navController: NavController) {
     }
 }
 
+
+
 @Preview(showBackground = true)
 @Composable
-fun HomeScreenPreview() {
+fun MuselatorScreen() {
     val navController = rememberNavController()
-    HomeScreen(navController)
+    MuselatorScreen(navController)
 }
-
 
 @Composable
-fun BottomNavBar(navController: NavController) {
-    val items = listOf(
-        BottomNavItem("homescreen", "Home", Icons.Default.Home),
-        BottomNavItem("muselator", "Muselator", Icons.Default.Star),
-        BottomNavItem("flashcards", "Flashcards", Icons.Default.Create),
-        BottomNavItem("profile", "Profile", Icons.Default.Person)
-    )
-
-    NavigationBar {
-        val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-        items.forEach { item ->
-            NavigationBarItem(
-                selected = currentRoute == item.route,
-                onClick = {
-                    if (currentRoute != item.route) { // Prevent crashing by avoiding duplicate navigation
-                        navController.navigate(item.route) {
-                            popUpTo("homescreen") { inclusive = false }
-                            launchSingleTop = true
-                        }
-                    }
-                },
-                icon = { Icon(item.icon, contentDescription = item.label) },
-                label = { Text(item.label) }
-            )
-        }
+fun CircularPlusButton(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .size(60.dp)  // Set size to ensure it's large enough to be a circle
+            .clip(CircleShape)  // Use CircleShape to make it circular
+            .background(Color.White),
+        contentPadding = PaddingValues(0.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.White,
+            contentColor = MaterialTheme.colorScheme.primary
+        )
+    ) {
+        Text(
+            text = "+",
+            fontSize = 30.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
-
-data class BottomNavItem(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
