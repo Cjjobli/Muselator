@@ -32,6 +32,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.muselator.ui.theme.surfaceLight
 
+/*
+DOCSTRINGS
+IN LINE COMMENTS
+ */
 @Composable
 fun HomeScreen(navController: NavController) {
     Scaffold(
