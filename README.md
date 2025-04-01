@@ -1,4 +1,4 @@
-#Muselator is an innovative app designed
+Muselator is an innovative app designed
 to bridge the gap between foreign music
 and English, making it a powerful tool for
 language learning. Through music, the
