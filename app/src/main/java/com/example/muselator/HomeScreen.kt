@@ -34,6 +34,13 @@ import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
 
+/**
+ * A composable function to define the Home Screen of the Muselator app.
+ * Allows users to input text, detect its language, and translate it into English.
+ * Displays the detected language, translation, and provides an option to clear input fields.
+ *
+ * @param navController The NavController used for handling navigation between screens.
+ */
 @Composable
 fun HomeScreen(navController: NavController) {
 

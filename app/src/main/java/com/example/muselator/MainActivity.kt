@@ -55,6 +55,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * A composable function that serves as the entry point for the Muselator app.
+ * Sets up navigation between various screens using a NavHost.
+ *
+ * @Preview Shows a preview of the composable in the Android Studio design editor.
+ */
 @Preview(showBackground = true)
 @Composable
 fun MuselatorApp(){
@@ -69,6 +75,13 @@ fun MuselatorApp(){
     }
 }
 
+/**
+ * A composable function to render the Landing Screen of the app.
+ * Includes a welcome message, input fields for user credentials,
+ * and navigation options for login or account creation.
+ *
+ * @param navController The NavController used for handling navigation between screens.
+ */
 @Composable
 fun LandingScreen(navController: NavController){
     Column (
@@ -119,6 +132,13 @@ fun LandingScreen(navController: NavController){
     }
 }
 
+/**
+ * A composable function to render a text input field.
+ * Allows users to input text, with dynamic state management
+ * and a customizable label.
+ *
+ * @param stringTxt Label text displayed above the input field.
+ */
 @Composable
 fun InputTextField(stringTxt: String) {
     var text by remember { mutableStateOf("") }
@@ -134,6 +154,13 @@ fun InputTextField(stringTxt: String) {
     )
 }
 
+/**
+ * A composable function to render a read-only text field.
+ * Displays provided output text with a customizable label.
+ *
+ * @param stringTxt Label text displayed above the output field.
+ * @param outputText Text to be displayed inside the read-only field. If null, it defaults to an empty string.
+ */
 @Composable
 fun OutputTextField(stringTxt: String, outputText: String?) {
     TextField(
@@ -147,6 +174,13 @@ fun OutputTextField(stringTxt: String, outputText: String?) {
     )
 }
 
+/**
+ * A composable function to create a custom-styled button.
+ * Supports an optional click action and displays the provided text.
+ *
+ * @param text The label text displayed on the button.
+ * @param onClick Optional lambda function to handle button click actions. Defaults to an empty action if not provided.
+ */
 @Composable
 fun CustomMintButton(text: String, onClick: (() -> Unit)? = null) {
     ElevatedButton(

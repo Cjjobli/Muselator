@@ -41,6 +41,14 @@ Per due come noi - Angelina mango
 Beifahrer - Ayliva
 */
 
+/**
+ * A composable function that defines the Muselator screen.
+ * This screen enables users to input a song title and artist name, fetch lyrics,
+ * identify the language, and translate the lyrics into English.
+ * It also provides options to view the original and translated lyrics and clear all fields.
+ *
+ * @param navController The NavController used for handling navigation between screens.
+ */
 @Composable
 fun MuselatorScreen(navController: NavController) {
 
@@ -99,7 +107,7 @@ fun MuselatorScreen(navController: NavController) {
                 OutlinedTextField(
                     value = artistName,
                     onValueChange = { artistName = it },
-                    label = { Text("Enter Artist Name (Optional)", color = Color.White) },
+                    label = { Text("Enter Artist Name", color = Color.White) },
                     textStyle = TextStyle(fontSize = 30.sp, color = Color.White),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                     shape = RoundedCornerShape(16.dp),
@@ -233,22 +241,41 @@ fun MuselatorScreen(navController: NavController) {
     }
 }
 
-// Function to format translated text into lines
+/**
+ * A function to format the translated text into a list of lines.
+ * Splits the text based on punctuation marks (e.g., '.', ',', '!', '?') followed by whitespace.
+ *
+ * @param text The input text to be formatted.
+ * @return A list of strings, each representing a line of the formatted text.
+ */
 fun formatTranslatedText(text: String): List<String> {
     val lines = text.split(Regex("(?<=\\.|,|!|\\?)\\s+"))
     return lines
 }
 
-// Fetch lyrics from the Musixmatch API
+/**
+ * A suspend function to fetch lyrics for a given song and artist using the MusixMatch API.
+ * Encodes song and artist names for safe URL usage, sends a request to the API,
+ * and parses the JSON response to extract the lyrics.
+ *
+ * @param songTitle The title of the song.
+ * @param artist The name of the artist.
+ * @return The lyrics of the song if found, or a "Lyrics not found." message in case of an error.
+ */
 suspend fun fetchLyrics(songTitle: String, artist: String): String {
     return withContext(Dispatchers.IO) {
         try {
+            // API Request
             val apiKey = "c7f526e6acc449fa1d91319fda70c4b5"
             val encodedTitle = URLEncoder.encode(songTitle, "UTF-8")
             val encodedArtist = URLEncoder.encode(artist, "UTF-8")
             val url = "https://api.musixmatch.com/ws/1.1/matcher.lyrics.get?q_track=$encodedTitle&q_artist=$encodedArtist&apikey=$apiKey"
+
+            // Sends a GET request to MusixMatch.
+            // Reads the entire response as a string.
             val response = URL(url).readText()
 
+            // Parses the JSON structure layer by layer to get to lyrics_body
             val jsonObject = JSONObject(response)
             val lyrics = jsonObject.getJSONObject("message")
                 .getJSONObject("body")
@@ -262,6 +289,13 @@ suspend fun fetchLyrics(songTitle: String, artist: String): String {
     }
 }
 
+/**
+ * A composable function to create a bottom navigation bar for the Muselator app.
+ * Provides navigation between key screens such as Home, Muselator, Flashcards, and Profile,
+ * while ensuring smooth transitions and preventing duplicate navigations.
+ *
+ * @param navController The NavController used for handling navigation between screens.
+ */
 @Composable
 fun BottomNavBar(navController: NavController) {
     val items = listOf(
