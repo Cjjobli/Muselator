@@ -1,4 +1,4 @@
-package com.example.muselator
+package com.example.muselator.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.muselator.api.detectAndTranslate
+import com.example.muselator.components.BottomNavBar
 import com.example.muselator.ui.theme.surfaceLight
 import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.nl.languageid.LanguageIdentification
@@ -89,49 +91,16 @@ fun HomeScreen(navController: NavController) {
             Button(
                 onClick = {
                     isDetecting = true
-
-                    // Detect language using ML Kit's Language Identification
-                    val languageIdentifier = LanguageIdentification.getClient()
-
-                    languageIdentifier.identifyLanguage(inputText)
-                        .addOnSuccessListener { languageCode ->
-
-                            if (languageCode != "und") {
-                                detectedLanguage = "Detected language: $languageCode"
-
-                                // Translate only if language is detected
-                                val options = TranslatorOptions.Builder()
-                                    .setSourceLanguage(languageCode)
-                                    .setTargetLanguage(TranslateLanguage.ENGLISH)
-                                    .build()
-
-                                val englishTranslator = Translation.getClient(options)
-
-                                val conditions = DownloadConditions.Builder()
-                                    .requireWifi()
-                                    .build()
-
-                                englishTranslator.downloadModelIfNeeded(conditions)
-                                    .addOnSuccessListener {
-                                        englishTranslator.translate(inputText)
-                                            .addOnSuccessListener {  translatedText = it }
-                                            .addOnFailureListener { translatedText = "Translation failed." }
-                                    }
-                                    .addOnFailureListener {
-                                        translatedText = "Model download failed."
-                                    }
-
-                                // Language is undetected
-                            } else {
-                                detectedLanguage = "Language not detected."
-                            }
-                        }
-                        .addOnFailureListener {
-                            detectedLanguage = "Language detection failed."
-                        }
-                        .addOnCompleteListener {
-                            isDetecting = false
-                        }
+                    detectAndTranslate(
+                        inputText = inputText,
+                        onDetected = { detectedLanguage = it },
+                        onTranslated = { translatedText = it },
+                        onError = { message ->
+                            detectedLanguage = message
+                            translatedText = ""
+                        },
+                        onComplete = { isDetecting = false }
+                    )
                 },
                 enabled = inputText.isNotEmpty() && !isDetecting,
                 colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(125f, 0.32f, 0.64f)),
@@ -173,7 +142,6 @@ fun HomeScreen(navController: NavController) {
 }
 
 
-
 @Preview(showBackground = true)
 @Composable
 fun MuselatorScreen() {
@@ -181,24 +149,3 @@ fun MuselatorScreen() {
     MuselatorScreen(navController)
 }
 
-@Composable
-fun CircularPlusButton(onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .size(60.dp)  // Set size to ensure it's large enough to be a circle
-            .clip(CircleShape)  // Use CircleShape to make it circular
-            .background(Color.White),
-        contentPadding = PaddingValues(0.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.White,
-            contentColor = MaterialTheme.colorScheme.primary
-        )
-    ) {
-        Text(
-            text = "+",
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}

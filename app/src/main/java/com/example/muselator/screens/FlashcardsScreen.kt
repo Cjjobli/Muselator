@@ -1,7 +1,6 @@
-package com.example.muselator
+package com.example.muselator.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,12 +13,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.muselator.components.CustomMintButton
+import com.example.muselator.components.BottomNavBar
 import com.example.muselator.ui.theme.surfaceLight
 
+/*
+* Composable for the flashcard screen
+* NOT IMPLEMENTED YET
+* */
 @Composable
 fun FlashcardsScreen(navController: NavController) {
     Scaffold(
@@ -40,6 +47,7 @@ fun FlashcardsScreen(navController: NavController) {
                 color = surfaceLight,
                 style = MaterialTheme.typography.displaySmall,
                 modifier = Modifier.padding(start = 12.dp)
+                    .semantics { contentDescription = "Create a deck of flashcards here" }
             )
 
             CustomMintButton("Create Set")
@@ -51,6 +59,7 @@ fun FlashcardsScreen(navController: NavController) {
                 color = surfaceLight,
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(start = 12.dp)
+                    .semantics { contentDescription = "Your sets:" }
             )
 
             // Card Carousel using LazyRow
@@ -73,7 +82,9 @@ fun FlashcardsScreen(navController: NavController) {
                             Text(
                                 text = "Flashcard Set #$index", // Replace with actual set name
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.semantics { contentDescription = "Flashcard Set #$index" }
+
                             )
 
                             Spacer(modifier = Modifier.height(35.dp))
@@ -83,7 +94,7 @@ fun FlashcardsScreen(navController: NavController) {
                                 },
                                 modifier = Modifier.align(Alignment.CenterHorizontally)
                             ) {
-                                Text("Practice")
+                                Text("Practice", modifier = Modifier.semantics { contentDescription = "Practice" })
                             }
 
                         }
@@ -100,6 +111,7 @@ fun FlashcardsScreen(navController: NavController) {
                 color = surfaceLight,
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(start = 12.dp, bottom = 12.dp)
+                    .semantics { contentDescription = "Total cards practiced: x" }
             )
 
             Text(
@@ -107,6 +119,7 @@ fun FlashcardsScreen(navController: NavController) {
                 color = surfaceLight,
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(start = 12.dp)
+                    .semantics { contentDescription = "Last session review: 2024-03-09" }
             )
 
         }

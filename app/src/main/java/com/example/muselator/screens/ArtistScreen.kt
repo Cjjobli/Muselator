@@ -1,6 +1,5 @@
-package com.example.muselator
+package com.example.muselator.screens
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -59,7 +58,7 @@ fun ArtistScreen(navController: NavController) {
         topBar = {
             TopAppBar(
                 title = { Text("Artist Search") },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1C1C1C))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Gray)
             )
         }
     ) { padding ->

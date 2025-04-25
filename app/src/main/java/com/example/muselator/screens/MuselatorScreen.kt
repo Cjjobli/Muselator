@@ -1,7 +1,7 @@
-package com.example.muselator
+package com.example.muselator.screens
 
-import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,13 +33,23 @@ import org.json.JSONObject
 import java.net.URLEncoder
 import java.net.URL
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.muselator.api.FetchLyricsButton
+import com.example.muselator.components.BottomNavBar
+import com.example.muselator.components.SpeakButton
+import com.example.muselator.components.StopButton
+import com.example.muselator.components.rememberTTS
+import com.example.muselator.ui.theme.secondaryContainerLight
+import java.util.Locale
 
 /*
 Try these songs out!
 Tiroteo - Marc Segui
 Per due come noi - Angelina mango
 Beifahrer - Ayliva
+Mo-do eins, zwei, polizei
 */
 
 /**
@@ -60,13 +70,19 @@ fun MuselatorScreen(navController: NavController) {
     var detectedLanguage by remember { mutableStateOf("") }
     var isDetecting by remember { mutableStateOf(false) }
 
+    var lyricsFetched by remember { mutableStateOf(false) }
+    var translationFetched by remember { mutableStateOf(false) }
+
     val coroutineScope = rememberCoroutineScope()
+
+    val tts = rememberTTS()
+
+    var isSpeaking by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) }
     ) { paddingValues ->
 
-        //Scrollable
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -76,11 +92,11 @@ fun MuselatorScreen(navController: NavController) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState()) // Making the entire content scrollable
+                    .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
 
-                Spacer(modifier = Modifier.height(50.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
                     text = "Music is an enjoyable way to learn languages!" +
@@ -90,7 +106,7 @@ fun MuselatorScreen(navController: NavController) {
                     modifier = Modifier.padding(start = 12.dp)
                 )
 
-                Spacer(modifier = Modifier.height(50.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 Button(
                     onClick = {
@@ -101,7 +117,7 @@ fun MuselatorScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(top = 16.dp)
                 ) {
-                    Text("Go to Artist Screen")
+                    Text("Artist Screen", color = Color.Black)
                 }
 
                 Spacer(modifier = Modifier.height(50.dp))
@@ -114,9 +130,9 @@ fun MuselatorScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.White,
-                    focusedBorderColor = Color.White
-                )
+                        unfocusedBorderColor = Color.White,
+                        focusedBorderColor = Color.White
+                    )
                 )
 
                 OutlinedTextField(
@@ -132,108 +148,106 @@ fun MuselatorScreen(navController: NavController) {
                     )
                 )
 
-                Button(
-                    onClick = {
-                        isDetecting = true
+                FetchLyricsButton(
+                    songTitle = songTitle,
+                    artistName = artistName,
+                    isDetecting = isDetecting,
+                    coroutineScope = coroutineScope,
+                    onStartDetecting = { isDetecting = true },
+                    onFinishDetecting = { isDetecting = false },
+                    onLyricsFetched = { lyrics = it; lyricsFetched = true },
+                    onTranslationSuccess = { languageCode, translatedText ->
+                        detectedLanguage = "Detected language: $languageCode"
+                        translatedLyrics = translatedText
+                        translationFetched = true
+                    },
+                    onTranslationFailure = { errorMessage ->
+                        detectedLanguage = errorMessage
+                        translatedLyrics = ""
+                        translationFetched = false
+                    }
+                )
 
-                        // Fetch lyrics based on the song and artist names
-                        coroutineScope.launch {
-                            val lyricsResult = fetchLyrics(songTitle, artistName)
-                            lyrics = lyricsResult
+                if (lyricsFetched) {
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                            if (lyrics.isNotEmpty()) {
-                                // Detect language and translate the lyrics
-                                val languageIdentifier = LanguageIdentification.getClient()
+                    Text(
+                        text = "Lyrics:",
+                        style = TextStyle(fontSize = 20.sp, color = Color.White),
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                    Box(modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 200.dp)
+                        .border(2.dp, secondaryContainerLight)
+                        .padding(8.dp)
+                    ) {
+                        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                            Text(text = lyrics, style = TextStyle(fontSize = 18.sp, color = Color.White))
+                        }
+                    }
+                }
 
-                                languageIdentifier.identifyLanguage(lyrics)
-                                    .addOnSuccessListener { languageCode ->
+                if (translationFetched) {
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                                        if (languageCode != "und") {
-                                            detectedLanguage = "Detected language: $languageCode"
-
-                                            val options = TranslatorOptions.Builder()
-                                                .setSourceLanguage(languageCode)
-                                                .setTargetLanguage(TranslateLanguage.ENGLISH)
-                                                .build()
-
-                                            val englishTranslator = Translation.getClient(options)
-
-                                            val conditions = DownloadConditions.Builder()
-                                                .requireWifi()
-                                                .build()
-
-                                            englishTranslator.downloadModelIfNeeded(conditions)
-                                                .addOnSuccessListener {
-                                                    englishTranslator.translate(lyrics)
-                                                        .addOnSuccessListener { translatedText ->
-                                                            translatedLyrics = translatedText
-                                                        }
-                                                        .addOnFailureListener {
-                                                            translatedLyrics = "Translation failed."
-                                                        }
-                                                }
-                                                .addOnFailureListener {
-                                                    translatedLyrics = "Model download failed."
-                                                }
-
-                                        } else {
-                                            detectedLanguage = "Language not detected."
-                                        }
-                                    }
-                                    .addOnFailureListener {
-                                        detectedLanguage = "Language detection failed."
-                                    }
-                                    .addOnCompleteListener {
-                                        isDetecting = false
-                                    }
+                    Text(
+                        text = "Translated Lyrics:",
+                        style = TextStyle(fontSize = 20.sp, color = Color.White),
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                    Box(modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 200.dp)
+                        .border(2.dp, secondaryContainerLight)
+                        .padding(8.dp)
+                    ) {
+                        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                            val formattedLyrics = formatTranslatedText(translatedLyrics)
+                            formattedLyrics.forEach { line ->
+                                Text(
+                                    text = line,
+                                    style = TextStyle(fontSize = 18.sp, color = Color.White),
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
                             }
                         }
-                    },
-                    enabled = songTitle.isNotEmpty() && !isDetecting,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(125f, 0.32f, 0.64f)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Fetch Lyrics and Translate")
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = detectedLanguage,
-                    style = TextStyle(fontSize = 20.sp, color = Color.White),
-                    modifier = Modifier.padding(top = 12.dp)
-                )
-
-                // Display original lyrics in a scrollable box
-                Text(
-                    text = "Lyrics:",
-                    style = TextStyle(fontSize = 20.sp, color = Color.White),
-                    modifier = Modifier.padding(top = 12.dp)
-                )
-                Box(modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp).padding(8.dp)) {
-                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                        Text(text = lyrics, style = TextStyle(fontSize = 18.sp, color = Color.White))
                     }
                 }
 
-                // Display translated lyrics in a scrollable box
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Translated Lyrics:",
-                    style = TextStyle(fontSize = 20.sp, color = Color.White),
-                    modifier = Modifier.padding(top = 12.dp)
-                )
-                Box(modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp).padding(8.dp)) {
-                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                        val formattedLyrics = formatTranslatedText(translatedLyrics)
-                        formattedLyrics.forEach { line ->
-                            Text(
-                                text = line,
-                                style = TextStyle(fontSize = 18.sp, color = Color.White),
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
+                if (lyricsFetched) {
+                    SpeakButton(
+                        text = lyrics,
+                        tts = tts,
+                        label = "Speak Detected Language",
+                        onStartSpeaking = { isSpeaking = true },
+                        onStopSpeaking = {
+                            tts?.stop()
+                            isSpeaking = false
                         }
-                    }
+                    )
+                }
+
+                if (translationFetched) {
+                    SpeakButton(
+                        text = translatedLyrics,
+                        tts = tts,
+                        label = "Speak Translated Lyrics",
+                        onStartSpeaking = { isSpeaking = true },
+                        onStopSpeaking = {
+                            tts?.stop()
+                            isSpeaking = false
+                        }
+                    )
+                }
+
+                if (isSpeaking) {
+                    StopButton(
+                        onStop = {
+                            tts?.stop()
+                            isSpeaking = false
+                        }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -245,6 +259,8 @@ fun MuselatorScreen(navController: NavController) {
                         lyrics = ""
                         translatedLyrics = ""
                         detectedLanguage = ""
+                        lyricsFetched = false
+                        translationFetched = false
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.hsl(0f, 0.7f, 0.7f)),
                     modifier = Modifier.fillMaxWidth().padding(top = 30.dp)
@@ -267,80 +283,6 @@ fun formatTranslatedText(text: String): List<String> {
     val lines = text.split(Regex("(?<=\\.|,|!|\\?)\\s+"))
     return lines
 }
-
-/**
- * A suspend function to fetch lyrics for a given song and artist using the MusixMatch API.
- * Encodes song and artist names for safe URL usage, sends a request to the API,
- * and parses the JSON response to extract the lyrics.
- *
- * @param songTitle The title of the song.
- * @param artist The name of the artist.
- * @return The lyrics of the song if found, or a "Lyrics not found." message in case of an error.
- */
-suspend fun fetchLyrics(songTitle: String, artist: String): String {
-    return withContext(Dispatchers.IO) {
-        try {
-            // API Request
-            val apiKey = "c7f526e6acc449fa1d91319fda70c4b5"
-            val encodedTitle = URLEncoder.encode(songTitle, "UTF-8")
-            val encodedArtist = URLEncoder.encode(artist, "UTF-8")
-            val url = "https://api.musixmatch.com/ws/1.1/matcher.lyrics.get?q_track=$encodedTitle&q_artist=$encodedArtist&apikey=$apiKey"
-
-            // Sends a GET request to MusixMatch.
-            // Reads the entire response as a string.
-            val response = URL(url).readText()
-
-            // Parses the JSON structure layer by layer to get to lyrics_body
-            val jsonObject = JSONObject(response)
-            val lyrics = jsonObject.getJSONObject("message")
-                .getJSONObject("body")
-                .getJSONObject("lyrics")
-                .getString("lyrics_body")
-
-            lyrics
-        } catch (e: Exception) {
-            "Lyrics not found."
-        }
-    }
-}
-
-/**
- * A composable function to create a bottom navigation bar for the Muselator app.
- * Provides navigation between key screens such as Home, Muselator, Flashcards, and Profile,
- * while ensuring smooth transitions and preventing duplicate navigations.
- *
- * @param navController The NavController used for handling navigation between screens.
- */
-@Composable
-fun BottomNavBar(navController: NavController) {
-    val items = listOf(
-        BottomNavItem("homescreen", "Home", Icons.Default.Home),
-        BottomNavItem("muselator", "Muselator", Icons.Default.Star),
-        BottomNavItem("flashcards", "Flashcards", Icons.Default.Create),
-        BottomNavItem("profile", "Profile", Icons.Default.Person)
-    )
-
-    NavigationBar {
-        val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-        items.forEach { item ->
-            NavigationBarItem(
-                selected = currentRoute == item.route,
-                onClick = {
-                    if (currentRoute != item.route) { // Prevent crashing by avoiding duplicate navigation
-                        navController.navigate(item.route) {
-                            popUpTo("homescreen") { inclusive = false }
-                            launchSingleTop = true
-                        }
-                    }
-                },
-                icon = { Icon(item.icon, contentDescription = item.label) },
-                label = { Text(item.label) }
-            )
-        }
-    }
-}
-
-data class BottomNavItem(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 
 @Preview(showBackground = true)
 @Composable

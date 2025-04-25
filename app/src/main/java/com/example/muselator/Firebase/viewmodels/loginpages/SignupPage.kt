@@ -1,12 +1,16 @@
-package com.example.muselator.loginpages
+package com.example.muselator.Firebase.viewmodels.loginpages
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,10 +27,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.muselator.viewmodels.AuthState
-import com.example.muselator.viewmodels.AuthViewModel
+import com.example.muselator.components.CustomMintButton
+import com.example.muselator.Firebase.viewmodels.AuthState
+import com.example.muselator.Firebase.viewmodels.AuthViewModel
 
-
+/**
+ * A composable function that renders the Sign-Up screen for the Muselator app.
+ * It allows users to create a new account using their email and password.
+ * Upon successful sign-up, the user is navigated to the home screen.
+ * If sign-up fails, a Toast displays the error message.
+ *
+ * @param navController Used for navigating between screens.
+ * @param authViewModel ViewModel that handles authentication logic and state.
+ */
 @Composable
 fun SignupPage(navController: NavController, authViewModel: AuthViewModel) {
 
@@ -49,11 +62,14 @@ fun SignupPage(navController: NavController, authViewModel: AuthViewModel) {
     }
 
     Column (
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxSize()
+        .background(MaterialTheme.colorScheme.primaryContainer)
+        .padding(16.dp),
+    verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ){
-        Text(text = "Signup for Muselator", fontSize = 32.sp)
+        Text(text = "Sign Up for Muselator", fontSize = 32.sp)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -64,7 +80,8 @@ fun SignupPage(navController: NavController, authViewModel: AuthViewModel) {
             },
             label = {
                 Text(text = "Email")
-            }
+            },
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -76,17 +93,12 @@ fun SignupPage(navController: NavController, authViewModel: AuthViewModel) {
             },
             label = {
                 Text(text = "Password")
-            }
+            },
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = {
-            authViewModel.signup(email, password)
-        },            enabled = authState.value != AuthState.Loading
-        ) {
-            Text(text = "Create account")
-        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -95,5 +107,13 @@ fun SignupPage(navController: NavController, authViewModel: AuthViewModel) {
         }) {
             Text(text = "Already have an account? Login")
         }
+
+        CustomMintButton(
+            text = "Create account",
+            onClick = {
+                authViewModel.signup(email, password)
+            }
+        )
+
     }
 }
