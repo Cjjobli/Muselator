@@ -1,5 +1,6 @@
 package com.example.muselator
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -88,6 +89,20 @@ fun MuselatorScreen(navController: NavController) {
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(start = 12.dp)
                 )
+
+                Spacer(modifier = Modifier.height(50.dp))
+
+                Button(
+                    onClick = {
+                        navController.navigate("ArtistScreen")
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF42A5F5)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                ) {
+                    Text("Go to Artist Screen")
+                }
 
                 Spacer(modifier = Modifier.height(50.dp))
 
