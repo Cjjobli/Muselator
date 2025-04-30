@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.muselator.components.CustomMintButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -58,7 +59,7 @@ fun ArtistScreen(navController: NavController) {
         topBar = {
             TopAppBar(
                 title = { Text("Artist Search") },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Gray)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         }
     ) { padding ->
@@ -75,12 +76,9 @@ fun ArtistScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(16.dp))
-            Button(
-                onClick = { searchArtist() },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Search")
-            }
+
+            CustomMintButton("Search", onClick = { searchArtist()})
+
             Spacer(Modifier.height(16.dp))
 
             if (errorMessage.isNotEmpty()) {

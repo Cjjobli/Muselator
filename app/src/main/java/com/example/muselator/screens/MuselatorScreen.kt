@@ -117,7 +117,7 @@ fun MuselatorScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(top = 16.dp)
                 ) {
-                    Text("Artist Screen", color = Color.Black)
+                    Text("Artist Screen", color = Color.White)
                 }
 
                 Spacer(modifier = Modifier.height(50.dp))
